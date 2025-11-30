@@ -1,10 +1,11 @@
 version: '3.8'
 
 services:
-  # 1. Backend (API Python)
+  # --- 1. Backend (API Python) ---
   backend:
     build: ./backend
     container_name: aeroflash-backend
+    restart: unless-stopped
     environment:
       DB_HOST: ${DB_HOST}
       DB_NAME: ${DB_NAME}
@@ -15,10 +16,11 @@ services:
     networks:
       - app-network
 
-  # 2. Frontend (Nginx)
+  # --- 2. Frontend (Nginx) ---
   frontend:
     build: ./frontend
     container_name: aeroflash-frontend
+    restart: unless-stopped
     ports:
       - "80:80"
     depends_on:
@@ -26,10 +28,11 @@ services:
     networks:
       - app-network
 
-  # 3. Monitoreo (Prometheus)
+  # --- 3. Monitoreo de Métricas (Prometheus) ---
   prometheus:
     image: prom/prometheus:latest
     container_name: aeroflash-prometheus
+    restart: unless-stopped
     volumes:
       - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
     ports:
@@ -37,10 +40,11 @@ services:
     networks:
       - app-network
 
-  # 4. Visualización (Grafana)
+  # --- 4. Visualización (Grafana) ---
   grafana:
     image: grafana/grafana:latest
     container_name: aeroflash-grafana
+    restart: unless-stopped
     ports:
       - "3000:3000"
     environment:
@@ -48,10 +52,11 @@ services:
     networks:
       - app-network
 
-  # 5. Jenkins (CI/CD)
+  # --- 5. Jenkins (CI/CD) ---
   jenkins:
     build: ./jenkins
     container_name: aeroflash-jenkins
+    restart: unless-stopped
     user: root
     privileged: true
     ports:
@@ -64,10 +69,11 @@ services:
     networks:
       - app-network
 
-  # 6. Logging Centralizado (Loki)
+  # --- 6. Logging Centralizado (Loki) ---
   loki:
     image: grafana/loki:2.9.0
     container_name: aeroflash-loki
+    restart: unless-stopped
     ports:
       - "3100:3100"
     volumes:
@@ -76,10 +82,11 @@ services:
     networks:
       - app-network
 
-  # 7. Recolector de Logs (Promtail)
+  # --- 7. Recolector de Logs (Promtail) ---
   promtail:
     image: grafana/promtail:2.9.0
     container_name: aeroflash-promtail
+    restart: unless-stopped
     volumes:
       - /var/lib/docker/containers:/var/lib/docker/containers:ro
       - ./monitoring/promtail-config.yml:/etc/promtail/config.yml
@@ -87,14 +94,20 @@ services:
     networks:
       - app-network
 
-  # 8. Calidad de Código (SonarQube)
+  # --- 8. Calidad de Código (SonarQube) ---
   sonarqube:
     image: sonarqube:community
     container_name: aeroflash-sonarqube
+    restart: unless-stopped
     ports:
       - "9000:9000"
     environment:
       - SONAR_ES_BOOTSTRAP_CHECKS_DISABLE=true
+    # IMPORTANTE: Límites de recursos para evitar fallos de ElasticSearch
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
     volumes:
       - sonarqube_data:/opt/sonarqube/data
       - sonarqube_logs:/opt/sonarqube/logs

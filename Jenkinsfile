@@ -22,7 +22,7 @@ pipeline {
                     
                     // 2. Ir a la carpeta y reiniciar Docker
                     dir('/home/ubuntu/app') {
-                        sh 'docker-compose up -d --build backend frontend prometheus grafana'
+                        sh 'docker-compose up -d --build backend frontend prometheus grafana loki promtail sonarqube'
                     }
                 }
             }
