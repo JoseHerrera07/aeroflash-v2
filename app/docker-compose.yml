@@ -1,0 +1,73 @@
+version: '3.8'
+
+services:
+  # 1. Backend (API Python)
+  backend:
+    build: ./backend
+    container_name: aeroflash-backend
+    environment:
+      DB_HOST: ${DB_HOST}
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "5000:5000"
+    networks:
+      - app-network
+
+  # 2. Frontend (Nginx)
+  frontend:
+    build: ./frontend
+    container_name: aeroflash-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - app-network
+
+  # 3. Monitoreo (Prometheus)
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: aeroflash-prometheus
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    networks:
+      - app-network
+
+  # 4. Visualización (Grafana)
+  grafana:
+    image: grafana/grafana:latest
+    container_name: aeroflash-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    networks:
+      - app-network
+      
+  # 5. Jenkins (CI/CD)
+  jenkins:
+    build: ./jenkins
+    container_name: aeroflash-jenkins
+    user: root 
+    privileged: true
+    ports:
+      - "8080:8080"
+      - "50000:50000"
+    volumes:
+      - jenkins_data:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /home/ubuntu/app:/home/ubuntu/app 
+    networks:
+      - app-network
+      
+networks:
+  app-network:
+    driver: bridge
+
+# --- ESTO ES LO QUE FALTABA ---
+volumes:
+  jenkins_data:
