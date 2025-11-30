@@ -35,9 +35,6 @@ data "aws_ami" "ubuntu" {
 # --- 3. Crear la Instancia EC2 ---
 resource "aws_instance" "app_server" {
   ami           = data.aws_ami.ubuntu.id
-  
-  # OJO: t2.medium recomendado (2 vCPU, 4GB RAM) para Jenkins + Monitoreo.
-  # Si usas t2.micro (gratis), todo irá MUY lento y podría fallar.
   instance_type = "t2.medium"
 
   subnet_id                   = aws_subnet.public_subnet.id
@@ -45,13 +42,20 @@ resource "aws_instance" "app_server" {
   associate_public_ip_address = true
   key_name                    = aws_key_pair.kp.key_name
 
+  # --- CAMBIO IMPORTANTE: AUMENTAR DISCO DURO ---
+  root_block_device {
+    volume_size = 25           # 25 GB de espacio (suficiente para Jenkins + Docker)
+    volume_type = "gp3"        # SSD de uso general moderno
+    delete_on_termination = true
+  }
+  # ----------------------------------------------
+
   tags = {
     Name = "aeroflash-server-v2"
   }
   
   iam_instance_profile = aws_iam_instance_profile.ec2_profile.name
-  # --- Script de Inicio Automático (Bootstrapping) ---
-  # Esto se ejecuta como root la primera vez que la máquina arranca
+  
   user_data = <<-EOF
               #!/bin/bash
               # Log de todo lo que pasa para depurar si falla
@@ -61,7 +65,7 @@ resource "aws_instance" "app_server" {
               
               # 1. Actualizar el sistema
               apt-get update -y
-              apt-get install -y ca-certificates curl gnupg git
+              apt-get install -y ca-certificates curl gnupg git jq postgresql-client awscli
 
               # 2. Instalar Docker (Instrucciones oficiales)
               install -m 0755 -d /etc/apt/keyrings

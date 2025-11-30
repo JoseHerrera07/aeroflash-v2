@@ -47,12 +47,12 @@ services:
       - GF_SECURITY_ADMIN_PASSWORD=admin
     networks:
       - app-network
-      
+
   # 5. Jenkins (CI/CD)
   jenkins:
     build: ./jenkins
     container_name: aeroflash-jenkins
-    user: root 
+    user: root
     privileged: true
     ports:
       - "8080:8080"
@@ -60,14 +60,56 @@ services:
     volumes:
       - jenkins_data:/var/jenkins_home
       - /var/run/docker.sock:/var/run/docker.sock
-      - /home/ubuntu/app:/home/ubuntu/app 
+      - /home/ubuntu/app:/home/ubuntu/app
     networks:
       - app-network
-      
+
+  # 6. Logging Centralizado (Loki)
+  loki:
+    image: grafana/loki:2.9.0
+    container_name: aeroflash-loki
+    ports:
+      - "3100:3100"
+    volumes:
+      - ./monitoring/loki-config.yaml:/etc/loki/local-config.yaml
+    command: -config.file=/etc/loki/local-config.yaml
+    networks:
+      - app-network
+
+  # 7. Recolector de Logs (Promtail)
+  promtail:
+    image: grafana/promtail:2.9.0
+    container_name: aeroflash-promtail
+    volumes:
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - ./monitoring/promtail-config.yml:/etc/promtail/config.yml
+    command: -config.file=/etc/promtail/config.yml
+    networks:
+      - app-network
+
+  # 8. Calidad de Código (SonarQube)
+  sonarqube:
+    image: sonarqube:community
+    container_name: aeroflash-sonarqube
+    ports:
+      - "9000:9000"
+    environment:
+      - SONAR_ES_BOOTSTRAP_CHECKS_DISABLE=true
+    volumes:
+      - sonarqube_data:/opt/sonarqube/data
+      - sonarqube_logs:/opt/sonarqube/logs
+      - sonarqube_extensions:/opt/sonarqube/extensions
+    networks:
+      - app-network
+
 networks:
   app-network:
     driver: bridge
 
-# --- ESTO ES LO QUE FALTABA ---
+# --- Volúmenes Persistentes ---
 volumes:
   jenkins_data:
+  sonarqube_data:
+  sonarqube_logs:
+  sonarqube_extensions:
+
