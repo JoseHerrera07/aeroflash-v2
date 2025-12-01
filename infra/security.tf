@@ -59,9 +59,16 @@ resource "aws_security_group" "app_sg" {
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
+  
+  # 7. SonarQube - Calidad de Código
+  ingress {
+    description = "Acceso SonarQube"
+    from_port   = 9000
+    to_port     = 9000
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
 
-  # Reglas de Salida (Egress)
-  # Permitimos salir a todo internet (necesario para descargar Docker, actualizaciones, etc.)
   egress {
     from_port   = 0
     to_port     = 0
