@@ -1,5 +1,3 @@
-# infra/provider.tf
-
 terraform {
   required_providers {
     aws = {
@@ -13,7 +11,7 @@ terraform {
 provider "aws" {
   region = "us-east-1" 
 
-  # Tags para gestión de costos.
+  
   default_tags {
     tags = {
       Project     = "AeroFlash"

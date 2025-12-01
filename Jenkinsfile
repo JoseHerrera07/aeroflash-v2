@@ -4,7 +4,7 @@ pipeline {
     stages {
         stage('Validar Código') {
             steps {
-                echo '🔍 Verificando estructura...'
+                echo ' Verificando estructura...'
                 sh 'ls -la'
             }
         }

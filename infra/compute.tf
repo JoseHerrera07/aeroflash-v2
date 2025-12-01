@@ -1,25 +1,24 @@
-# --- 1. Generar Par de Claves SSH (Key Pair) ---
 resource "tls_private_key" "pk" {
   algorithm = "RSA"
   rsa_bits  = 4096
 }
 
 resource "aws_key_pair" "kp" {
-  key_name   = "aeroflash-key-v2"       # Nombre de la llave en AWS
+  key_name   = "aeroflash-key-v2"      
   public_key = tls_private_key.pk.public_key_openssh
 }
 
-# Guardar la llave privada en tu carpeta local para poder usarla luego
+
 resource "local_file" "ssh_key" {
   filename = "${path.module}/aeroflash-key.pem"
   content  = tls_private_key.pk.private_key_pem
   file_permission = "0400"
 }
 
-# --- 2. Buscar la imagen (AMI) de Ubuntu 22.04 más reciente ---
+
 data "aws_ami" "ubuntu" {
   most_recent = true
-  owners      = ["099720109477"] # ID oficial de Canonical
+  owners      = ["099720109477"] 
 
   filter {
     name   = "name"
@@ -32,7 +31,7 @@ data "aws_ami" "ubuntu" {
   }
 }
 
-# --- 3. Crear la Instancia EC2 ---
+
 resource "aws_instance" "app_server" {
   ami           = data.aws_ami.ubuntu.id
   instance_type = "t2.medium"
@@ -42,13 +41,13 @@ resource "aws_instance" "app_server" {
   associate_public_ip_address = true
   key_name                    = aws_key_pair.kp.key_name
 
-  # --- CAMBIO IMPORTANTE: AUMENTAR DISCO DURO ---
+  
   root_block_device {
-    volume_size = 25           # 25 GB de espacio (suficiente para Jenkins + Docker)
-    volume_type = "gp3"        # SSD de uso general moderno
+    volume_size = 25           
+    volume_type = "gp3"        
     delete_on_termination = true
   }
-  # ----------------------------------------------
+  
 
   tags = {
     Name = "aeroflash-server-v2"
@@ -87,7 +86,7 @@ resource "aws_instance" "app_server" {
               EOF
 }
 
-# --- 4. Output: Mostrar la IP al terminar ---
+
 output "public_ip" {
   value = aws_instance.app_server.public_ip
 }

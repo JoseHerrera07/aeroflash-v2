@@ -1,21 +1,18 @@
-# Definimos el "Firewall" para nuestra instancia
 resource "aws_security_group" "app_sg" {
   name        = "aeroflash-app-sg"
   description = "Security Group para AeroFlash App + Monitoring + Jenkins"
   vpc_id      = aws_vpc.main.id
 
-  # Reglas de Entrada (Ingress)
-
-  # 1. SSH (Puerto 22) - Para administrar el servidor
+  # 1. SSH (Puerto 22) 
   ingress {
     description = "SSH desde cualquier lugar"
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"] # En prod, esto debería ser SOLO tu IP
+    cidr_blocks = ["0.0.0.0/0"] # Esto lo dejo por ahora asi para poder hacer mi presentacion xd
   }
 
-  # 2. HTTP (Puerto 80) - Para el Frontend (Nginx)
+  # 2. HTTP (Puerto 80) 
   ingress {
     description = "Acceso Web Frontend"
     from_port   = 80
@@ -24,7 +21,7 @@ resource "aws_security_group" "app_sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  # 3. Backend API (Puerto 5000) - Para pruebas directas a la API
+  # 3. Backend API (Puerto 5000) 
   ingress {
     description = "Acceso API Backend"
     from_port   = 5000
@@ -33,7 +30,7 @@ resource "aws_security_group" "app_sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  # 4. Grafana (Puerto 3000) - Panel de Monitoreo
+  # 4. Grafana (Puerto 3000) 
   ingress {
     description = "Acceso Grafana"
     from_port   = 3000
@@ -42,7 +39,7 @@ resource "aws_security_group" "app_sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  # 5. Prometheus (Puerto 9090) - Métricas
+  # 5. Prometheus (Puerto 9090) 
   ingress {
     description = "Acceso Prometheus"
     from_port   = 9090
@@ -51,7 +48,7 @@ resource "aws_security_group" "app_sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  # 6. Jenkins (Puerto 8080) - CI/CD
+  # 6. Jenkins (Puerto 8080) 
   ingress {
     description = "Acceso Jenkins"
     from_port   = 8080
@@ -60,7 +57,7 @@ resource "aws_security_group" "app_sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
   
-  # 7. SonarQube - Calidad de Código
+  # 7. SonarQube 
   ingress {
     description = "Acceso SonarQube"
     from_port   = 9000

@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-  # --- 1. Backend (API Python) ---
+  #  1. Backend (API Python) 
   backend:
     build: ./backend
     container_name: aeroflash-backend
@@ -16,7 +16,7 @@ services:
     networks:
       - app-network
 
-  # --- 2. Frontend (Nginx) ---
+  # 2. Frontend (Nginx) 
   frontend:
     build: ./frontend
     container_name: aeroflash-frontend
@@ -28,7 +28,7 @@ services:
     networks:
       - app-network
 
-  # --- 3. Monitoreo de Métricas (Prometheus) ---
+  #  3. Monitoreo de Métricas (Prometheus) 
   prometheus:
     image: prom/prometheus:latest
     container_name: aeroflash-prometheus
@@ -40,7 +40,7 @@ services:
     networks:
       - app-network
 
-  # --- 4. Visualización (Grafana) ---
+  #  4. Visualización (Grafana) 
   grafana:
     image: grafana/grafana:latest
     container_name: aeroflash-grafana
@@ -52,7 +52,7 @@ services:
     networks:
       - app-network
 
-  # --- 5. Jenkins (CI/CD) ---
+  #  5. Jenkins (CI/CD) 
   jenkins:
     build: ./jenkins
     container_name: aeroflash-jenkins
@@ -69,7 +69,7 @@ services:
     networks:
       - app-network
 
-  # --- 6. Logging Centralizado (Loki) ---
+  #  6. Logging Centralizado (Loki) 
   loki:
     image: grafana/loki:2.9.0
     container_name: aeroflash-loki
@@ -82,7 +82,7 @@ services:
     networks:
       - app-network
 
-  # --- 7. Recolector de Logs (Promtail) ---
+  #  7. Recolector de Logs (Promtail) 
   promtail:
     image: grafana/promtail:2.9.0
     container_name: aeroflash-promtail
@@ -94,7 +94,7 @@ services:
     networks:
       - app-network
 
-  # --- 8. Calidad de Código (SonarQube) ---
+  #  8. Calidad de Código (SonarQube) 
   sonarqube:
     image: sonarqube:community
     container_name: aeroflash-sonarqube
@@ -103,7 +103,7 @@ services:
       - "9000:9000"
     environment:
       - SONAR_ES_BOOTSTRAP_CHECKS_DISABLE=true
-    # IMPORTANTE: Límites de recursos para evitar fallos de ElasticSearch
+      
     ulimits:
       nofile:
         soft: 65536
@@ -119,7 +119,6 @@ networks:
   app-network:
     driver: bridge
 
-# --- Volúmenes Persistentes ---
 volumes:
   jenkins_data:
   sonarqube_data:
