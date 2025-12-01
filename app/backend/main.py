@@ -59,7 +59,7 @@ def init_db():
                 );
             """)
             
-            # Datos de prueba
+            # Datos para hacer la prueba
             cur.execute("SELECT count(*) FROM flights")
             if cur.fetchone()['count'] == 0:
                 flights = [
@@ -95,10 +95,10 @@ def health_check():
 
 @app.get("/flights")
 def get_flights():
-    # Simulacion de latenciaa
+    # para simulacion de latenciaa
     time.sleep(random.uniform(0.1, 0.5))
     
-    # Simulacion de error
+    # para la simulacion de errores
     if random.randint(1, 100) > 95:
         logger.error("Error simulado 500 en /flights")
         raise HTTPException(status_code=500, detail="Error de conexion simulado")
