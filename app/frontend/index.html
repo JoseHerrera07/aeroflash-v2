@@ -2,70 +2,174 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>AeroFlash - Reserva de Vuelos</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AeroFlash - Vuela Alto</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        body { background-color: #f8f9fa; padding-top: 50px; }
-        .card { margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border: none; }
-        .price { font-size: 1.5rem; color: #28a745; font-weight: bold; }
-        .header-title { color: #0d6efd; margin-bottom: 30px; }
+        :root {
+            --primary-color: #0d6efd;
+            --secondary-color: #6610f2;
+        }
+        body {
+            background-color: #f0f2f5;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 80px 0;
+            margin-bottom: 40px;
+            border-radius: 0 0 50px 50px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        .hero h1 { font-weight: 800; font-size: 3.5rem; }
+        
+        /* Flight Cards */
+        .flight-card {
+            border: none;
+            border-radius: 15px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            overflow: hidden;
+            background: white;
+            margin-bottom: 25px;
+        }
+        .flight-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.15);
+        }
+        .card-header-custom {
+            background-color: #e9ecef;
+            padding: 15px;
+            font-weight: bold;
+            color: #495057;
+            border-bottom: none;
+        }
+        .route-text {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+        .price-tag {
+            font-size: 1.8rem;
+            color: #198754;
+            font-weight: 800;
+        }
+        .btn-book {
+            border-radius: 50px;
+            padding: 10px 25px;
+            font-weight: 600;
+            width: 100%;
+        }
+        
+        /* Status Bar */
+        #status-alert {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            display: none; /* Oculto por defecto */
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="text-center">
-            <h1 class="header-title">✈️ AeroFlash</h1>
-            <p class="lead">Sistema de Gestión y Reserva de Vuelos</p>
-            <div id="status-alert" class="alert alert-secondary">Conectando con el sistema...</div>
-        </div>
 
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="#"><i class="fas fa-plane-departure me-2"></i>AeroFlash</a>
+            <span class="navbar-text text-white">
+                <small>v2.0 Beta</small>
+            </span>
+        </div>
+    </nav>
+
+    <div class="hero text-center">
+        <div class="container">
+            <h1>Descubre el Mundo</h1>
+            <p class="lead mb-4">Las mejores tarifas, los mejores destinos. Tu viaje comienza aquí.</p>
+            <div class="spinner-border text-light" role="status" id="loading-spinner">
+                <span class="visually-hidden">Cargando...</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <h3 class="mb-4 text-muted"><i class="fas fa-list-ul me-2"></i>Vuelos Disponibles Hoy</h3>
+        
         <div class="row" id="flights-container">
             </div>
+    </div>
+
+    <footer class="text-center py-4 text-muted mt-5">
+        <p>&copy; 2025 AeroFlash Airlines. Infraestructura potenciada por AWS & Docker.</p>
+    </footer>
+
+    <div id="status-alert" class="alert alert-success alert-dismissible fade show" role="alert">
+        <span id="status-msg">Conectado</span>
+        <button type="button" class="btn-close" onclick="this.parentElement.style.display='none'"></button>
     </div>
 
     <script>
         const API_URL = '/api';
 
-        // Funcion para cargar vuelos
+        function showNotification(msg, type = 'success') {
+            const alertBox = document.getElementById('status-alert');
+            const msgSpan = document.getElementById('status-msg');
+            
+            alertBox.className = `alert alert-${type} alert-dismissible fade show`;
+            msgSpan.textContent = msg;
+            alertBox.style.display = 'block';
+
+            // Ocultar después de 5 seg
+            setTimeout(() => alertBox.style.display = 'none', 5000);
+        }
+
         async function loadFlights() {
             const container = document.getElementById('flights-container');
-            const statusDiv = document.getElementById('status-alert');
+            const spinner = document.getElementById('loading-spinner');
 
             try {
                 const response = await fetch(`${API_URL}/flights`);
-                if (!response.ok) throw new Error('Error de red');
+                if (!response.ok) throw new Error('Error de conexión');
                 
                 const flights = await response.json();
-                statusDiv.className = 'alert alert-success';
-                statusDiv.textContent = 'Seleccione el Vuelo que le Gustaria Reservar';
-
+                spinner.style.display = 'none'; // Ocultar spinner
+                
                 container.innerHTML = flights.map(f => `
-                    <div class="col-md-6">
-                        <div class="card p-3">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <h5>${f.origin} ➝ ${f.destination}</h5>
-                                    <small class="text-muted">Salida: ${f.time}</small>
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card flight-card h-100">
+                            <div class="card-header-custom d-flex justify-content-between">
+                                <span><i class="fas fa-plane"></i> Vuelo #${f.id}</span>
+                                <span><i class="far fa-clock"></i> ${f.time || '10:00 AM'}</span>
+                            </div>
+                            <div class="card-body text-center d-flex flex-column justify-content-center">
+                                <div class="route-text mb-3">
+                                    ${f.origin} <i class="fas fa-long-arrow-alt-right mx-2 text-muted"></i> ${f.destination || f.dest}
                                 </div>
-                                <div class="text-end">
-                                    <div class="price">$${f.price}</div>
-                                    <button onclick="bookFlight(${f.id})" class="btn btn-primary btn-sm mt-2">Reservar</button>
-                                </div>
+                                <div class="price-tag mb-3">$${f.price}</div>
+                                <p class="text-muted small">Incluye impuestos y tasas</p>
+                                <button onclick="bookFlight(${f.id})" class="btn btn-primary btn-book mt-auto">
+                                    <i class="fas fa-ticket-alt me-2"></i>Reservar Ahora
+                                </button>
                             </div>
                         </div>
                     </div>
                 `).join('');
+                
+                showNotification(' Sistema Conectado a AWS RDS');
 
             } catch (error) {
                 console.error(error);
-                statusDiv.className = 'alert alert-danger';
-                statusDiv.textContent = 'Error conectando con el Backend (Revisa Grafana)';
+                spinner.style.display = 'none';
+                container.innerHTML = `<div class="alert alert-danger w-100"> Error cargando vuelos. Verifica el Backend.</div>`;
+                showNotification('Error de conexión con Backend', 'danger');
             }
         }
 
-        // Funcion para reservar
         async function bookFlight(id) {
-            const passenger = prompt("Ingrese nombre del pasajero:");
+            const passenger = prompt(" Ingrese nombre del pasajero para la reserva:");
             if (!passenger) return;
 
             try {
@@ -76,16 +180,16 @@
                 });
 
                 if (response.ok) {
-                    alert(' ¡Reserva Exitosa! Guardada en Base de Datos.');
+                    showNotification(` ¡Vuelo reservado para ${passenger}!`, 'success');
                 } else {
-                    alert(' Error al reservar.');
+                    showNotification(' Error al procesar la reserva', 'danger');
                 }
             } catch (e) {
-                alert('Error de conexión');
+                showNotification('Error de red', 'danger');
             }
         }
 
-        // Cargar al inicio
+        // Iniciar carga
         loadFlights();
     </script>
 </body>
